@@ -17,3 +17,13 @@ GRANT OWNERSHIP ON DATABASE rag_project_db TO ROLE rag_engineer_role;
 
 USE ROLE rag_engineer_role;
 CREATE SCHEMA rag_project_db.raw_data;
+
+
+--utils stuff
+
+create schema rag_project_db.util;
+
+
+CREATE OR REPLACE FILE FORMAT util.myformat
+TYPE = CSV
+PARSE_HEADER = TRUE;
