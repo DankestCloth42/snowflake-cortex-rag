@@ -1,7 +1,7 @@
 import os 
 from dotenv import load_dotenv
 from snowflake.snowpark import Session
-from snowflake.snowpark.functions import col, max
+import snowflake.snowpark.functions as F
 from snowflake.snowpark.window import Window
 
 
@@ -39,17 +39,34 @@ try:
 
     window_spec = Window.partitionBy('"team"')
 
-    df_data_with_calculations = df_data.withColumn('"Team_Max_Goals"', max('"goals"').over(window_spec))
+    df_data_with_calculations = df_data.withColumn('"Team_Max_Goals"', F.max('"goals"').over(window_spec))
 
+    columns_to_hash = [F.col(c).cast("string") for c in df_data_with_calculations.columns if c != '"player_name"' and c != '"match_id"']
+
+    df_data_with_calculations = df_data_with_calculations.withColumn(
+    '"row_sk"', 
+    F.hash(F.col('"player_name"'), F.col('"match_id"'))
+    )
+
+    df_data_with_calculations = df_data_with_calculations.withColumn(
+        '"row_hash"', 
+        F.hash(*columns_to_hash)
+    )
 
     print("Calculations performed successfully. Writing to Snowflake table...")
 
 
     df_data_with_calculations.write.mode("overwrite").save_as_table("raw_data.fifa_players_raw")
-    #print(df_data_with_calculations.select('"player_name"', '"team"', '"goals"', '"Team_Max_Goals"').limit(10).to_pandas()) ##testing
 
+    row_count = session.sql("""
+        SELECT ROW_COUNT 
+        FROM INFORMATION_SCHEMA.TABLES 
+        WHERE TABLE_SCHEMA = 'RAW_DATA' 
+        AND TABLE_NAME = 'FIFA_PLAYERS_RAW'
+    """).collect()[0][0]
 
-    print("Data written to Snowflake table successfully.")
+    print(f"Data written to Snowflake table successfully. Rows written: {row_count}")
+
 
 except Exception as e:
     print(f"An error occurred: {e}")
