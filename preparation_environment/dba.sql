@@ -27,3 +27,9 @@ create schema rag_project_db.util;
 CREATE OR REPLACE FILE FORMAT util.myformat
 TYPE = CSV
 PARSE_HEADER = TRUE;
+
+
+--schema for the data
+
+USE ROLE rag_engineer_role;
+create schema rag_project_db.cortex_data;
