@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 from snowflake.snowpark import Session
 import snowflake.snowpark.functions as F
 from snowflake.snowpark.window import Window
+from logger_setup import get_logger
 
 
 load_dotenv()
+
+logger = get_logger('03_delta_load')
 
 # config 
 connection_parameters = {
@@ -22,10 +25,10 @@ source_to_stage: str = "@my_stage/fifa_world_cup_2026_player_performance.csv"
 
 
 try:
-    print("Connecting to Snowflake...")
+    logger.info("Connecting to Snowflake...")
     session = Session.builder.configs(connection_parameters).create()
-    print("Successfully connected to Snowflake!")
-    print(f"Loading files from stage {source_to_stage}...")
+    logger.info("Successfully connected to Snowflake!")
+    logger.info(f"Loading files from stage {source_to_stage}...")
     
     # Używamy obiektu DataFrameReader
     df_data = session.read.options({
@@ -35,13 +38,13 @@ try:
     }).csv(f"{source_to_stage}")
 
 
-    print("Data loaded successfully. Performing calculations...")
+    logger.info("Data loaded successfully. Performing calculations...")
 
     window_spec = Window.partitionBy('"team"')
 
     df_data_with_calculations = df_data.withColumn('"Team_Max_Goals"', F.max('"goals"').over(window_spec))
 
-    print("Executing MERGE operation...")
+    logger.info("Executing MERGE operation...")
     target_table = session.table("raw_data.fifa_players_raw")
 
     # listing columns to generate hash in list format for the merge operation
@@ -73,12 +76,12 @@ try:
     )
    
 
-    print(f"MERGE SUCCESSFUL! Rows inserted: {merge_result.rows_inserted}, Rows updated: {merge_result.rows_updated}")
+    logger.info(f"MERGE SUCCESSFUL! Rows inserted: {merge_result.rows_inserted}, Rows updated: {merge_result.rows_updated}")
 
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
 
 
 finally:
-    print("Closing the Snowflake session...")
+    logger.info("Closing the Snowflake session...")
     session.close()

@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from snowflake.snowpark import Session
 import snowflake.snowpark.functions as F
 from snowflake.snowpark.window import Window
+from logger_setup import get_logger
 
 
 # Workaround for the Snowflake Cortex embedding function, which is restricted on Trial accounts.
@@ -10,6 +11,8 @@ from sentence_transformers import SentenceTransformer
 
 
 load_dotenv()
+
+logger = get_logger('04_prepare_cortex_docs')
 
 # config 
 connection_parameters = {
@@ -26,9 +29,9 @@ connection_parameters = {
 
 
 try:
-    print("Connecting to Snowflake...")
+    logger.info("Connecting to Snowflake...")
     session = Session.builder.configs(connection_parameters).create()
-    print("Successfully connected to Snowflake!")
+    logger.info("Successfully connected to Snowflake!")
 
 
     df_table = session.table("raw_data.fifa_players_raw")
@@ -89,15 +92,15 @@ try:
     # =========================================================================================
 
 
-    print("Extracting data from Snowflake into local memory...")
+    logger.info("Extracting data from Snowflake into local memory...")
 
     pd_local = df_table_adjusted.to_pandas()
 
-    print("Downloading and loading model AI from Hugging Face (it can take a few minutes)...")
+    logger.info("Downloading and loading model AI from Hugging Face (it can take a few minutes)...")
 
     model = SentenceTransformer('Snowflake/snowflake-arctic-embed-m')
 
-    print("Generating vector embeddings locally using the model...")
+    logger.info("Generating vector embeddings locally using the model...")
 
 
     texts = pd_local['player_document'].tolist()
@@ -113,18 +116,20 @@ try:
 
     #print(embeddings[:5]) 
 
-    print("Vectors generated! Writing to the final Cortex table in Snowflake...")
+    logger.info("Vectors generated! Writing to the final Cortex table in Snowflake...")
 
-    pd_local['"player_vector"'] = embeddings.tolist()
+    pd_local['player_vector'] = embeddings.tolist()
 
     # Convert the Pandas DataFrame back to a Snowpark DataFrame
     snowpark_df_with_vectors = session.create_dataframe(pd_local)
 
     snowpark_df_with_vectors.write.mode("overwrite").save_as_table("cortex_data.fifa_players_cortex")
 
+    logger.info("Final Cortex table written successfully with local embeddings!")
+
 
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
 
 
 

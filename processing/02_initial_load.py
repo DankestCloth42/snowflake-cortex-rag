@@ -3,9 +3,12 @@ from dotenv import load_dotenv
 from snowflake.snowpark import Session
 import snowflake.snowpark.functions as F
 from snowflake.snowpark.window import Window
+from logger_setup import get_logger
 
 
 load_dotenv()
+
+logger = get_logger('02_initial_load')
 
 # config 
 connection_parameters = {
@@ -22,10 +25,10 @@ source_to_stage: str = "@my_stage/fifa_world_cup_2026_player_performance.csv"
 
 
 try:
-    print("Connecting to Snowflake...")
+    logger.info("Connecting to Snowflake...")
     session = Session.builder.configs(connection_parameters).create()
-    print("Successfully connected to Snowflake!")
-    print(f"Loading files from stage {source_to_stage}...")
+    logger.info("Successfully connected to Snowflake!")
+    logger.info(f"Loading files from stage {source_to_stage}...")
     
     # Używamy obiektu DataFrameReader
     df_data = session.read.options({
@@ -35,7 +38,7 @@ try:
     }).csv(f"{source_to_stage}")
 
 
-    print("Data loaded successfully. Performing calculations...")
+    logger.info("Data loaded successfully. Performing calculations...")
 
     window_spec = Window.partitionBy('"team"')
 
@@ -53,7 +56,7 @@ try:
         F.hash(*columns_to_hash)
     )
 
-    print("Calculations performed successfully. Writing to Snowflake table...")
+    logger.info("Calculations performed successfully. Writing to Snowflake table...")
 
 
     df_data_with_calculations.write.mode("overwrite").save_as_table("raw_data.fifa_players_raw")
@@ -65,13 +68,13 @@ try:
         AND TABLE_NAME = 'FIFA_PLAYERS_RAW'
     """).collect()[0][0]
 
-    print(f"Data written to Snowflake table successfully. Rows written: {row_count}")
+    logger.info(f"Data written to Snowflake table successfully. Rows written: {row_count}")
 
 
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
 
 
 finally:
-    print("Closing the Snowflake session...")
+    logger.info("Closing the Snowflake session...")
     session.close()
