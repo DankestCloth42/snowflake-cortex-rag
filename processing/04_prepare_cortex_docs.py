@@ -134,5 +134,5 @@ except Exception as e:
 
 
 finally:
-    print("Closing the Snowflake session...")
+    logger.info("Closing the Snowflake session...")
     session.close()
