@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  rag_app:
+    build: .
+    container_name: snowflake_rag_container
+    
+    env_file:
+      - .env
+      
+    volumes:
+      - .:/app
+      
+    stdin_open: true 
+    tty: true
+
