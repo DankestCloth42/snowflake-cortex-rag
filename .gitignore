@@ -1,3 +1,4 @@
 snowpark_env/
 .env
 logs/*
+processing/__pycache__

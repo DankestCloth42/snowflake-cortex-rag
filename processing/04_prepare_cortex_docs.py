@@ -40,17 +40,17 @@ try:
         '"player_document"', 
         F.concat_ws(
             F.lit(' '), 
-            F.lit('Zawodnikiem jest'), 
+            F.lit('The player is'), 
             F.col('"player_name"').cast("string"), 
-            F.lit('. Reprezentuje drużynę'), 
+            F.lit('. Represents team'), 
             F.col('"team"').cast("string"), 
-            F.lit('. Gra na pozycji'), 
+            F.lit('. Plays as'), 
             F.col('"position"').cast("string"), 
-            F.lit('. Podczas turnieju strzelił'), 
+            F.lit('. During the tournament scored'), 
             F.col('"total_goals_tournament"').cast("string"), 
-            F.lit('goli. i rozegrał'), 
+            F.lit('goals and played'), 
             F.col('"total_minutes_tournament"').cast("string"), 
-            F.lit('minut.')
+            F.lit('minutes.')
         )
     )
 
@@ -96,7 +96,7 @@ try:
 
     pd_local = df_table_adjusted.to_pandas()
 
-    logger.info("Downloading and loading model AI from Hugging Face (it can take a few minutes)...")
+    logger.info("Downloading and loading AI model from Hugging Face (it can take a few minutes)...")
 
     model = SentenceTransformer('Snowflake/snowflake-arctic-embed-m')
 

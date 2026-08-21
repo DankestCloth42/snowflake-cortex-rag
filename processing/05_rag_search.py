@@ -34,7 +34,7 @@ try:
     model = SentenceTransformer('Snowflake/snowflake-arctic-embed-m')
     logger.info("Model loaded successfully!")
 
-    user_query: str = "Jaki napastnik reprezentacji Francji grał świetnie i strzelił dużo goli?"
+    user_query: str = "Which striker from the French national team played great and scored many goals?"
     logger.info(f"Encoding user query: '{user_query}'...")
 
     vector = model.encode(user_query).tolist()
@@ -67,14 +67,14 @@ try:
 
 
     rag_prompt = f"""
-    Jesteś asystentem sportowym, ekspertem od piłki nożnej. 
-    Odpowiedz na pytanie użytkownika opierając się WYŁĄCZNIE na dostarczonym poniżej kontekście.
-    Jeśli w kontekście nie ma informacji pozwalających na odpowiedź, powiedz szczerze, że nie wiesz. Nie zmyślaj (nie halucynuj).
+    You are a sports assistant and football expert.
+    Answer the user's question based EXCLUSIVELY on the context provided below.
+    If the context does not contain enough information to answer, say honestly that you do not know. Do not make things up (do not hallucinate).
 
-    KONTEKST Z BAZY DANYCH:
+    DATABASE CONTEXT:
     {retrieval_results}
 
-    PYTANIE UŻYTKOWNIKA:
+    USER QUESTION:
     {user_query}
     """
 
@@ -83,11 +83,11 @@ try:
         model='gemini-3.6-flash',
         contents=rag_prompt,
         config=types.GenerateContentConfig(
-            temperature=0.1,  # Niska temperatura minimalizuje ryzyko halucynacji
+            temperature=0.1,  # Low temperature minimizes hallucination risk
         ),
     )
 
-    # 4. Wyświetlenie odpowiedzi
+    # 4. Display the response
     print("\n" + "="*60)
     print("🤖 RESPONSE FROM GEMINI AI:")
     print("="*60)

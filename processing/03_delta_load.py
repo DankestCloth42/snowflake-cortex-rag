@@ -30,7 +30,7 @@ try:
     logger.info("Successfully connected to Snowflake!")
     logger.info(f"Loading files from stage {source_to_stage}...")
     
-    # Używamy obiektu DataFrameReader
+    # We use the DataFrameReader object
     df_data = session.read.options({
         "PARSE_HEADER": True,
         "INFER_SCHEMA": True,
