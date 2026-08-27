@@ -1,24 +1,18 @@
 import os
-import importlib
 import traceback
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from snowflake.snowpark import Session
 from snowflake.snowpark.exceptions import SnowparkSQLException
 from google import genai
-
-# Import custom logger
-from logger_setup import get_logger
+from src.utils.logger_setup import get_logger
+from src.rag_engine.hybrid_search import extract_search_filters
 
 # Initialize the logger for this module
 logger = get_logger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Dynamically import the hybrid search module (module name starts with a digit)
-hybrid_module = importlib.import_module("06_hybrid_search")
-extract_search_filters = hybrid_module.extract_search_filters
 
 logger.info("Loading local vector model...")
 vector_model = SentenceTransformer('Snowflake/snowflake-arctic-embed-m')
@@ -84,9 +78,10 @@ def build_hybrid_query(user_query: str) -> str:
     return sql_query
 
 
-def run_hybrid_rag(user_query: str):
+def run_hybrid_rag(user_query: str) -> str:
     """
     Main orchestration function: extracts intent, queries Snowflake, and generates final answer.
+    Returns a string meant to be displayed in the Streamlit UI.
     """
     logger.info(f"Starting RAG process for query: '{user_query}'")
     session = None
@@ -100,13 +95,11 @@ def run_hybrid_rag(user_query: str):
         session = get_snowflake_session()
         logger.info("Connected to Snowflake. Executing query...")
         
-        
         results = session.sql(sql_query).collect()
         
         if not results:
             logger.warning("No matching documents found in the database.")
-            print("🤖 AI Response: I couldn't find any relevant information in the database.")
-            return
+            return "🤖 AI Response: I couldn't find any relevant information in the database."
 
         # Combine texts with clear separators for the LLM context
         context = "\n\n---\n\n".join([row["player_document"] for row in results])
@@ -132,24 +125,21 @@ def run_hybrid_rag(user_query: str):
             contents=prompt
         )
         
-        print("\n" + "="*50)
-        print("🤖 AI RESPONSE:")
-        print(response.text)
-        print("="*50 + "\n")
-        
         logger.info("RAG pipeline completed successfully.")
+        
+        return response.text
 
     # Error Handling Block
     except SnowparkSQLException as db_err:
         logger.error("Database error occurred (e.g., syntax issue or missing table).")
         logger.error(f"Snowflake details: {db_err}")
         logger.error(f"Query: {sql_query}")
-        print("🛠️ Sorry, we encountered a technical issue with the database.")
+        return "🛠️ Sorry, we encountered a technical issue with the database."
 
     except Exception as e:
         logger.critical(f"Critical system failure: {e}")
         logger.debug(traceback.format_exc()) 
-        print("🛠️ Sorry, our AI system is currently experiencing technical difficulties.")
+        return "🛠️ Sorry, our AI system is currently experiencing technical difficulties."
 
     finally:
         if session:
@@ -159,6 +149,8 @@ def run_hybrid_rag(user_query: str):
 
 
 if __name__ == "__main__":
-    # Smoke test for the entire pipeline
+    logger.info("Running smoke test for Hybrid RAG...")
     test_query = "Find players from Brazil who scored more than 10 goals in 2022"
-    run_hybrid_rag(test_query)
+    result = run_hybrid_rag(test_query)
+    print("\n--- TEST RESULT ---")
+    print(result)

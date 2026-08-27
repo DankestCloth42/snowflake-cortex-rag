@@ -20,7 +20,7 @@ def get_logger(script_name: str) -> logging.Logger:
 
 
         # Create a file handler to write logs to a file
-        file_handler = logging.FileHandler(log_file_path)
+        file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
         file_handler.setFormatter(formatter)
 
         # Create a file handler to wirte log to a file
