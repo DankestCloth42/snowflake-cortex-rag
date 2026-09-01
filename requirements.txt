@@ -3,3 +3,5 @@ snowflake-snowpark-python
 sentence-transformers
 kagglehub
 google-genai
+streamlit
+torchvision
