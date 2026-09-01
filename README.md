@@ -11,6 +11,15 @@ This repository is built with scalability, data engineering best practices, and 
 * **SCD Type 1 Delta Loads:** Implements Snowflake `MERGE` operations utilizing calculated hashes (`row_sk`, `row_hash`) to optimize compute costs.
 * **Hybrid RAG Engine:** Combines exact SQL filtering (extracted via LLM) with Vector Cosine Similarity for highly accurate context retrieval.
 * **Containerized Deployment:** Fully dockerized environment (`Dockerfile`, `docker-compose`) ensuring consistent execution across different platforms.
+* **DBA Infrastructure Setup:** Pre-configured SQL scripts to instantly provision Snowflake infrastructure (Warehouses, Databases, Roles, and Cortex privileges).
+
+## 🛠️ Snowflake Infrastructure Setup (DBA)
+
+Before running the ETL pipeline or the application, you must provision the required Snowflake infrastructure. 
+
+1. Log in to your Snowflake Snowsight console.
+2. Open a new SQL Worksheet.
+3. Copy the contents of your DBA setup script `src/dba/dba.sql` and execute it as `ACCOUNTADMIN`. This will automatically create the necessary databases, schemas, warehouses, user roles, and grant required permissions for Snowflake Cortex.
 
 ## ⚙️ Configuration (.env)
 
@@ -36,7 +45,16 @@ KAGGLE_KEY=your_kaggle_key
 
 ## 🚀 How to Run
 
-### Option A: Local Environment
+### Option A: Using Docker (Recommended)
+The easiest way to run the Streamlit interface without worrying about local dependencies is using Docker Compose.
+
+```bash
+# Build and run the container
+docker-compose up --build
+```
+*The Streamlit app will be available at `http://localhost:8501`.*
+
+### Option B: Local Environment
 If you prefer running the code locally, ensure you have Python 3.9+ installed.
 
 1. **Install Dependencies:**
@@ -53,12 +71,3 @@ python run_etl_pipeline.py
 ```bash
 python -m streamlit run src/app/chat_interface.py
 ```
-
-### Option B: Using Docker 
-The easiest way to run the Streamlit interface without worrying about local dependencies is using Docker Compose.
-
-```bash
-# Build and run the container
-docker-compose up --build
-```
-*The Streamlit app will be available at `http://localhost:8501`.*
