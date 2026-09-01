@@ -32,30 +32,33 @@ GEMINI_API_KEY=your_gemini_api_key
 # Kaggle API
 KAGGLE_USERNAME=your_kaggle_username
 KAGGLE_KEY=your_kaggle_key
-
+```
 
 ## 🚀 How to Run
 
-### Option A: Using Docker (Recommended)
+### Option A: Local Environment
+If you prefer running the code locally, ensure you have Python 3.9+ installed.
+
+1. **Install Dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+2. **Run the ETL Pipeline:** (Executes data extraction, delta loads, and vector embeddings)
+```bash
+python run_etl_pipeline.py
+```
+
+3. **Launch the AI Scout Interface:**
+```bash
+python -m streamlit run src/app/chat_interface.py
+```
+
+### Option B: Using Docker 
 The easiest way to run the Streamlit interface without worrying about local dependencies is using Docker Compose.
 
 ```bash
 # Build and run the container
 docker-compose up --build
-
-The Streamlit app will be available at http://localhost:8501.
-
-### Option B: Local Environment
-If you prefer running the code locally, ensure you have Python 3.9+ installed.
-    ```bash 
-    # 1. Install Dependencies:
-    
-    pip install -r requirements.txt
-
-    # 2. Run the ETL Pipeline: (Executes data extraction, delta loads, and vector embeddings)
-
-    python run_etl_pipeline.py
-
-    # 3. Launch the AI Scout Interface:
-
-    python -m streamlit run src/app/chat_interface.py
+```
+*The Streamlit app will be available at `http://localhost:8501`.*
