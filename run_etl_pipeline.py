@@ -14,22 +14,18 @@ def main():
     logger.info("🚀 STARTING FULL ETL PIPELINE 🚀")
     
     try:
-        # Krok 1: Pobranie z Kaggle
         logger.info("--- STEP 1: Downloading Data from Kaggle ---")
         file_path = download_dataset()
         if not file_path:
             raise RuntimeError("Pipeline stopped: Data download failed.")
             
-        # Krok 2: Wgranie do Snowflake Stage
         logger.info("--- STEP 2: Uploading to Snowflake Stage ---")
         upload_to_snowflake(file_path)
         
-        # Krok 3: Ładowanie tabel
         logger.info("--- STEP 3: Loading Data into Raw Tables ---")
         initial_load()
         delta_load()
         
-        # Krok 4: Wektoryzacja bazy docelowej
         logger.info("--- STEP 4: Creating Cortex Documents & Vectors ---")
         prepare_cortex_docs()
         

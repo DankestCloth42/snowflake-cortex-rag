@@ -2,3 +2,4 @@ snowpark_env/
 .env
 logs/*
 data/*
+__pycache__/
